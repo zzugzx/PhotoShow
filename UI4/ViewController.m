@@ -12,10 +12,14 @@
 @interface ViewController () <UICollectionViewDelegate>
 
 @property (nonatomic, strong) UIScrollView *scrollView;
+@property (nonatomic, strong) UISwitch *mySwitch;
+@property (nonatomic, strong) UILabel *label;
 @property (nonatomic, strong) UIImageView *imageView1;
 @property (nonatomic, strong) UIImageView *imageView2;
 @property (nonatomic, strong) UIImageView *imageView3;
 @property (nonatomic, strong) UIPageControl *pageControl;
+
+@property (nonatomic, strong) NSTimer *timer;
 
 @end
 
@@ -26,19 +30,16 @@
     // Do any additional setup after loading the view.
     
     [self initView];
-    [NSTimer scheduledTimerWithTimeInterval:3.0f repeats:YES block:^(NSTimer * _Nonnull timer) {
-        if (self.pageControl.currentPage == 2) {
-            self.pageControl.currentPage = 0;
-        } else {
-            ++self.pageControl.currentPage;
-        }
-        CGFloat currentX = self.scrollView.bounds.size.width * self.pageControl.currentPage;
-        [self.scrollView setContentOffset:CGPointMake(currentX, 0)];
-    }];
+    
+    
+    
 }
+
 
 - (void)initView {
     [self.view addSubview:self.scrollView];
+    [self.view addSubview:self.mySwitch];
+    [self.view addSubview:self.label];
     
     [self.scrollView addSubview:self.imageView1];
     [self.scrollView addSubview:self.imageView2];
@@ -53,6 +54,40 @@
     
     self.imageView3.frame = CGRectMake(self.scrollView.bounds.size.width * 2, 0, self.scrollView.bounds.size.width, self.scrollView.bounds.size.height);
 }
+
+- (UILabel *)label {
+    if (!_label) {
+        _label = [[UILabel alloc] initWithFrame:CGRectMake(self.view.bounds.size.width / 2 - 50, 725, 100, 50)];
+        _label.text = @"自动轮播";
+        _label.textAlignment = UITextAlignmentCenter;
+    }
+    return _label;
+}
+
+- (UISwitch *)mySwitch {
+    if (!_mySwitch) {
+        _mySwitch = [[UISwitch alloc] initWithFrame:CGRectMake(self.view.bounds.size.width / 2 - 25, 700, 50, 50)];
+        [_mySwitch addTarget:self action:@selector(switchAction:) forControlEvents:UIControlEventValueChanged];
+    }
+    return _mySwitch;
+}
+
+- (NSTimer *)timer {
+    if (!_timer) {
+        __weak typeof(self) wSelf = self;
+        _timer = [NSTimer scheduledTimerWithTimeInterval:3.0f repeats:YES block:^(NSTimer * _Nonnull timer) {
+            if (wSelf.pageControl.currentPage == 2) {
+                wSelf.pageControl.currentPage = 0;
+            } else {
+                ++wSelf.pageControl.currentPage;
+            }
+            CGFloat currentX = wSelf.scrollView.bounds.size.width * wSelf.pageControl.currentPage;
+            [wSelf.scrollView setContentOffset:CGPointMake(currentX, 0)];
+        }];
+    }
+    return _timer;
+}
+
 
 - (UIPageControl *)pageControl {
     if (!_pageControl) {
@@ -111,6 +146,15 @@
     CGFloat currentX = scrollView.contentOffset.x;
     
     self.pageControl.currentPage = currentX / self.scrollView.bounds.size.width;
+}
+
+#pragma mark - Action
+- (IBAction)switchAction:(UISwitch *)st {
+    if (st.on == YES) {
+        [self.timer setFireDate:[NSDate distantPast]];
+    } else {
+        [self.timer setFireDate:[NSDate distantFuture]];
+    }
 }
 
 @end
